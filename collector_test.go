@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mdlayher/hdhomerun"
+	"github.com/joydip/hdhomerun"
 	"github.com/prometheus/prometheus/util/promlint"
 )
 
@@ -231,9 +231,11 @@ func (d *testDevice) ForEachTuner(fn func(t tuner) error) error {
 var _ tuner = &testTuner{}
 
 type testTuner struct {
-	index int
-	debug *hdhomerun.TunerDebug
+	index    int
+	debug    *hdhomerun.TunerDebug
+	vchannel string
 }
 
 func (t testTuner) Index() int                            { return t.index }
 func (t testTuner) Debug() (*hdhomerun.TunerDebug, error) { return t.debug, nil }
+func (t testTuner) VChannel() (string, error)             { return t.vchannel, nil }

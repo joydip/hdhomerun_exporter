@@ -19,6 +19,8 @@ type collector struct {
 	TunerSignalToNoiseRatio  *prometheus.Desc
 	TunerSymbolErrorRatio    *prometheus.Desc
 
+	TunerVChannel *prometheus.Desc
+
 	CableCARDBytesPerSecond *prometheus.Desc
 	CableCARDOverflow       *prometheus.Desc
 	CableCARDResync         *prometheus.Desc
@@ -64,6 +66,13 @@ func newCollector(d device) prometheus.Collector {
 			"hdhomerun_tuner_symbol_error_ratio",
 			"Television symbol error ratio for this tuner.",
 			[]string{"tuner"},
+			nil,
+		),
+
+		TunerVChannel: prometheus.NewDesc(
+			"hdhomerun_tuner_vchannel",
+			"Virtual channel number this tuner is tuned to.",
+			[]string{"tuner", "vchannel"},
 			nil,
 		),
 
@@ -114,6 +123,7 @@ func (c *collector) Describe(ch chan<- *prometheus.Desc) {
 		c.TunerSignalStrengthRatio,
 		c.TunerSignalToNoiseRatio,
 		c.TunerSymbolErrorRatio,
+		c.TunerVChannel,
 		c.CableCARDBytesPerSecond,
 		c.CableCARDOverflow,
 		c.CableCARDResync,
@@ -161,6 +171,8 @@ func (c *collector) Collect(ch chan<- prometheus.Metric) {
 		ccOnce.Do(func() {
 			c.collectCableCARD(ch, stats.CableCARD)
 		})
+
+		c.collectTunerVChannel(ch, tuner, t)
 
 		return nil
 	})
@@ -212,6 +224,21 @@ func (c *collector) collectTuner(ch chan<- prometheus.Metric, tuner string, ts *
 			tuner,
 		)
 	}
+}
+
+func (c *collector) collectTunerVChannel(ch chan<- prometheus.Metric, tuner string, t tuner) {
+	vchannel, err := t.VChannel()
+	if err != nil {
+		ch <- prometheus.NewInvalidMetric(c.TunerVChannel, err)
+		return
+	}
+
+	ch <- prometheus.MustNewConstMetric(
+		c.TunerVChannel,
+		prometheus.GaugeValue,
+		1,
+		tuner, vchannel,
+	)
 }
 
 // collectCableCARD collects CableCARD status metrics.
@@ -281,6 +308,7 @@ type device interface {
 type tuner interface {
 	Index() int
 	Debug() (*hdhomerun.TunerDebug, error)
+	VChannel() (string, error)
 }
 
 var _ device = &hdhrDevice{}
@@ -317,6 +345,10 @@ func (t *hdhrTuner) Index() int {
 
 func (t *hdhrTuner) Debug() (*hdhomerun.TunerDebug, error) {
 	return t.t.Debug()
+}
+
+func (t *hdhrTuner) VChannel() (string, error) {
+	return t.t.VChannel()
 }
 
 // ratio converts a percentage into a 0.0-1.0 ratio.
