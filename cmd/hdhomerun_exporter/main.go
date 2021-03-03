@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mdlayher/hdhomerun"
-	"github.com/mdlayher/hdhomerun_exporter"
+	"github.com/joydip/hdhomerun"
+	"github.com/joydip/hdhomerun_exporter"
 )
 
 func main() {

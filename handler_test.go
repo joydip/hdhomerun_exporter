@@ -8,8 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/mdlayher/hdhomerun"
-	"github.com/mdlayher/hdhomerun_exporter"
+	"github.com/joydip/hdhomerun"
 )
 
 func TestNewHandler(t *testing.T) {
