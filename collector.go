@@ -70,8 +70,8 @@ func newCollector(d device) prometheus.Collector {
 		),
 
 		TunerVChannel: prometheus.NewDesc(
-			"hdhomerun_tuner_vchannel",
-			"Virtual channel number this tuner is tuned to.",
+			"hdhomerun_tuner_vchannel_info",
+			"Virtual channel this tuner is tuned to.",
 			[]string{"tuner", "vchannel"},
 			nil,
 		),
@@ -233,10 +233,15 @@ func (c *collector) collectTunerVChannel(ch chan<- prometheus.Metric, tuner stri
 		return
 	}
 
+	val := 0
+	if vchannel != "none" {
+		val = 1
+	}
+
 	ch <- prometheus.MustNewConstMetric(
 		c.TunerVChannel,
 		prometheus.GaugeValue,
-		1,
+		float64(val),
 		tuner, vchannel,
 	)
 }
